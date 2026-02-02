@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prototype - Grande Stratégie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0c1118;
+      --panel: #141b25;
+      --panel-alt: #1c2634;
+      --text: #f4f7fb;
+      --muted: #9fb0c6;
+      --accent: #57c4ff;
+      --accent-2: #f2c14e;
+      --success: #5ad48a;
+      --danger: #f06a6a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1.2fr 1.5fr 1.2fr 1.5fr;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background: #0f151e;
+      border-bottom: 1px solid #1f2a3a;
+    }
+
+    .topbar__brand {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .turn {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .topbar__resources,
+    .topbar__status {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .resource,
+    .status {
+      background: var(--panel);
+      padding: 0.6rem 0.8rem;
+      border-radius: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 96px;
+    }
+
+    .resource .label,
+    .status .label {
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .resource .value,
+    .status .value {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .topbar__alerts {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: flex-end;
+    }
+
+    .alert {
+      background: #1b2533;
+      border: 1px solid #243246;
+      border-radius: 999px;
+      color: var(--text);
+      padding: 0.35rem 0.8rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .alert:nth-child(1) {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .alert:nth-child(2) {
+      border-color: var(--accent-2);
+      color: var(--accent-2);
+    }
+
+    .alert:nth-child(3) {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 2.3fr 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem;
+    }
+
+    .map {
+      background: var(--panel);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .map__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .map__header h1 {
+      font-size: 1.3rem;
+    }
+
+    .map__actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .map__actions button {
+      background: var(--panel-alt);
+      color: var(--text);
+      border: 1px solid #233044;
+      padding: 0.4rem 0.9rem;
+      border-radius: 0.6rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .map__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .tile {
+      padding: 1rem;
+      border-radius: 0.9rem;
+      background: #1a2230;
+      border: 1px solid #243246;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      min-height: 110px;
+    }
+
+    .tile span {
+      font-weight: 600;
+    }
+
+    .tile small {
+      color: var(--muted);
+    }
+
+    .tile.capital {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(87, 196, 255, 0.3);
+    }
+
+    .tile.port {
+      background: linear-gradient(135deg, #1b2a3b, #19202d);
+    }
+
+    .tile.desert {
+      background: linear-gradient(135deg, #2b2720, #1a1f29);
+    }
+
+    .tile.jungle {
+      background: linear-gradient(135deg, #1c2b25, #192230);
+    }
+
+    .tile.mountain {
+      background: linear-gradient(135deg, #202634, #192230);
+    }
+
+    .tile.frontier {
+      border-color: var(--danger);
+    }
+
+    .context {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 2fr 1fr;
+      background: var(--panel-alt);
+      padding: 1rem 1.2rem;
+      border-radius: 0.8rem;
+      border: 1px solid #233044;
+    }
+
+    .context p {
+      color: var(--muted);
+      margin-top: 0.4rem;
+      line-height: 1.5;
+    }
+
+    .context__buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .context__buttons button {
+      background: var(--accent);
+      color: #04111a;
+      border: none;
+      padding: 0.5rem 0.7rem;
+      border-radius: 0.6rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .context__buttons button:nth-child(2) {
+      background: var(--accent-2);
+    }
+
+    .context__buttons button:nth-child(3) {
+      background: #1b2533;
+      color: var(--text);
+      border: 1px solid #2a3a52;
+    }
+
+    .sidebar {
+      background: var(--panel);
+      border-radius: 1rem;
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: width 0.3s ease, opacity 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 60px;
+      overflow: hidden;
+    }
+
+    .sidebar__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .collapse {
+      background: none;
+      border: 1px solid #2b394e;
+      color: var(--muted);
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .tabs {
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .tab {
+      background: #1a2230;
+      border: 1px solid #243246;
+      color: var(--muted);
+      padding: 0.5rem 0.7rem;
+      border-radius: 0.6rem;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(87, 196, 255, 0.35);
+    }
+
+    .panel {
+      background: #121924;
+      border-radius: 0.8rem;
+      padding: 1rem;
+      border: 1px solid #202b3d;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 300px;
+    }
+
+    .panel__card {
+      background: #1a2230;
+      border-radius: 0.8rem;
+      padding: 0.9rem;
+      border: 1px solid #243246;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .panel__card p {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .panel__actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .panel__actions button {
+      background: #222c3c;
+      color: var(--text);
+      border: 1px solid #2e3d52;
+      padding: 0.35rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .panel ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .notifications {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      padding: 1rem 1.5rem 1.8rem;
+    }
+
+    .notification {
+      background: #111822;
+      border-radius: 0.8rem;
+      padding: 0.8rem 1rem;
+      border: 1px solid #1f2a3a;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .notification strong {
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+
+    .notification span {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 1200px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar__resources,
+      .topbar__status,
+      .topbar__alerts {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .context {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__brand">
+        <span class="logo">Atlas Prime</span>
+        <span class="turn">Tour 128 · T4 2215</span>
+      </div>
+      <div class="topbar__resources">
+        <div class="resource">
+          <span class="label">Nourriture</span>
+          <span class="value">+320</span>
+        </div>
+        <div class="resource">
+          <span class="label">Énergie</span>
+          <span class="value">+145</span>
+        </div>
+        <div class="resource">
+          <span class="label">Métaux</span>
+          <span class="value">+86</span>
+        </div>
+        <div class="resource">
+          <span class="label">Finances</span>
+          <span class="value">2.4B</span>
+        </div>
+      </div>
+      <div class="topbar__status">
+        <div class="status">
+          <span class="label">Stabilité</span>
+          <span class="value">71%</span>
+        </div>
+        <div class="status">
+          <span class="label">Science</span>
+          <span class="value">Tier IV</span>
+        </div>
+        <div class="status">
+          <span class="label">Population</span>
+          <span class="value">248 M</span>
+        </div>
+      </div>
+      <div class="topbar__alerts">
+        <button class="alert" type="button">Projet terminé</button>
+        <button class="alert" type="button">Crise frontalière</button>
+        <button class="alert" type="button">Guerre froide</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="map">
+        <div class="map__header">
+          <h1>Carte du monde</h1>
+          <div class="map__actions">
+            <button type="button">Construction</button>
+            <button type="button">Déplacement</button>
+            <button type="button">Exploration</button>
+            <button type="button">Recrutement</button>
+          </div>
+        </div>
+
+        <div class="map__grid">
+          <div class="tile capital">
+            <span>Capitale</span>
+            <small>Industrie 72 · Défense 64</small>
+          </div>
+          <div class="tile port">
+            <span>Port Delta</span>
+            <small>Commerce 58 · Flotte 22</small>
+          </div>
+          <div class="tile desert">
+            <span>Désert Arid</span>
+            <small>Pétrole · Uranium</small>
+          </div>
+          <div class="tile jungle">
+            <span>Forêt Boréale</span>
+            <small>Bois · Biodiversité</small>
+          </div>
+          <div class="tile mountain">
+            <span>Monts Orphelins</span>
+            <small>Minerai · Radar</small>
+          </div>
+          <div class="tile frontier">
+            <span>Frontière Nord</span>
+            <small>Armée 2e Corps</small>
+          </div>
+        </div>
+
+        <div class="context">
+          <div>
+            <h2>Tuile sélectionnée · Capitale</h2>
+            <p>
+              Croissance démographique stable. Capacité d’infrastructure élevée. Options
+              disponibles : agrandir le centre de recherche, lancer un projet énergétique,
+              mobiliser une brigade.
+            </p>
+          </div>
+          <div class="context__buttons">
+            <button type="button">Planifier un projet</button>
+            <button type="button">Assigner un gouverneur</button>
+            <button type="button">Détails de la ville</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar__header">
+          <h2>Modules stratégiques</h2>
+          <button class="collapse" type="button" id="toggleSidebar">Replier</button>
+        </div>
+        <div class="tabs">
+          <button class="tab active" type="button">Diplomatie</button>
+          <button class="tab" type="button">Économie</button>
+          <button class="tab" type="button">Politique</button>
+          <button class="tab" type="button">Infrastructures</button>
+          <button class="tab" type="button">Conseil d’État</button>
+          <button class="tab" type="button">Armées</button>
+          <button class="tab" type="button">Technologies</button>
+        </div>
+
+        <div class="panel">
+          <h3>Diplomatie active</h3>
+          <div class="panel__card">
+            <strong>Alliance de Solarys</strong>
+            <p>Confiance 62 · Peur 18 · Intérêt 74 · Grief 12</p>
+            <div class="panel__actions">
+              <button type="button">Négocier</button>
+              <button type="button">Traité</button>
+              <button type="button">Embargo</button>
+            </div>
+          </div>
+          <div class="panel__card">
+            <strong>Coalition Arctique</strong>
+            <p>Confiance 41 · Peur 55 · Intérêt 33 · Grief 48</p>
+            <div class="panel__actions">
+              <button type="button">Apaiser</button>
+              <button type="button">Médiation</button>
+              <button type="button">Renseignement</button>
+            </div>
+          </div>
+
+          <h4>Négociations en cours</h4>
+          <ul>
+            <li>Corridor énergétique Transauria · 2 tours</li>
+            <li>Accord de recherche quantique · 4 tours</li>
+            <li>Renouvellement pacte de défense · 1 tour</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+
+    <section class="notifications">
+      <div class="notification">
+        <strong>Événement</strong>
+        <span>Révolte locale contenue grâce aux forces de sécurité.</span>
+      </div>
+      <div class="notification">
+        <strong>Économie</strong>
+        <span>Le prix du pétrole augmente de 8% sur le marché mondial.</span>
+      </div>
+      <div class="notification">
+        <strong>Science</strong>
+        <span>Projet « Fission compacte » terminé.</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const toggleButton = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+
+    toggleButton.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      toggleButton.textContent = sidebar.classList.contains('collapsed')
+        ? 'Déplier'
+        : 'Replier';
+    });
+  </script>
+</body>
+</html>
